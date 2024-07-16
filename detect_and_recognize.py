@@ -19,7 +19,6 @@ def run(model: str, num_hands: int,
   cap.set(cv2.CAP_PROP_FRAME_WIDTH, width)
   cap.set(cv2.CAP_PROP_FRAME_HEIGHT, height)
 
-  recognition_frame = None
   recognition_result_list = []
 
   def save_result(result: vision.GestureRecognizerResult,
@@ -42,14 +41,10 @@ def run(model: str, num_hands: int,
     if not success:
       sys.exit('ERROR: Unable to read from webcam. Please verify your webcam settings.')
 
-    image = cv2.flip(image, 1)
-
     rgb_image = cv2.cvtColor(image, cv2.COLOR_BGR2RGB)
     mp_image = mp.Image(image_format=mp.ImageFormat.SRGB, data=rgb_image)
 
     recognizer.recognize_async(mp_image, time.time_ns() // 1_000_000)
-
-    current_frame = image
 
     if recognition_result_list:
 
@@ -65,11 +60,7 @@ def run(model: str, num_hands: int,
 
           print(hand + category_name)
 
-      recognition_frame = current_frame
       recognition_result_list.clear()
-
-    if recognition_frame is not None:
-        cv2.imshow('gesture_recognition', recognition_frame)
 
     if cv2.waitKey(1) == 27:
         break
