@@ -37,7 +37,7 @@ class GestureControl:
 
         self.watching = True
 
-    def handle_left_joystick(self, frame, hand_landmarks):
+    def handle_left_joystick(self, hand_landmarks):
 
         index_finger_landmarks = hand_landmarks.landmark[self.mp_hands.HandLandmark.INDEX_FINGER_TIP]
         x_value_float = index_finger_landmarks.x * 2 - 1
@@ -69,10 +69,10 @@ class GestureControl:
 
             # self.previous[hand] = category
 
-        if hand == 'Left':
-            self.handle_left_joystick(frame, hand_landmarks)
+        # if hand == 'Left':
+        #     self.handle_left_joystick(frame, hand_landmarks)
 
-    def private_watch(self):
+    def watch(self):
 
         cap = cv2.VideoCapture(0)
         
@@ -87,10 +87,6 @@ class GestureControl:
                 for hand_landmarks, handedness in zip(hand_results.multi_hand_landmarks, hand_results.multi_handedness):
                     hand = handedness.classification[0].label
                     self.process_hand(frame, hand, hand_landmarks)
-
-    def watch(self):
-
-        self.private_watch()
 
 instance = GestureControl()
 instance.watch()
