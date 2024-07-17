@@ -32,16 +32,17 @@ def process_gesture(hand, gesture):
     if gesture in keys[hand].keys():
         gamepad.press_button(button=keys[hand][gesture])
         gamepad.update()
-        time.sleep(1.0)
+        time.sleep(0.5)
         gamepad.release_button(button=keys[hand][gesture])
         gamepad.update()
+        time.sleep(0.5)
 
 def process_left_joystick(hand_landmarks):
     index = hand_landmarks[mp_hands.HandLandmark.INDEX_FINGER_TIP]
-    print(int(index.x*128), int(index.y*255))
     gamepad.left_joystick(
-        x_value=int(index.x*128),
+        x_value=int(-index.x*255+255),
         y_value=int(index.y*255))
+    time.sleep(0.05)
     gamepad.update()
 
 def main():
@@ -72,13 +73,12 @@ def main():
                 hand = hand[0].display_name
                 if results[0].gestures:
                     gesture = results[0].gestures[hand_index][0].category_name
-                if gesture != 'None':
-                    process_gesture(hand, gesture)
-                elif hand == 'Left':
-                    process_left_joystick(hand_landmarks)
+                    if gesture != 'None':
+                        process_gesture(hand, gesture)
+                    if hand == 'Left' and gesture not in keys['Left'].keys():
+                        process_left_joystick(hand_landmarks)
     
             results.clear()
-        
             cv2.imshow('Gesture Recognition', image)
     
         if cv2.waitKey(1) == 27:
