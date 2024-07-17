@@ -3,13 +3,8 @@ import mediapipe as mp
 from mediapipe.tasks import python
 from mediapipe.tasks.python import vision
 import os
-import sys
 import time
 import vgamepad as vg
-
-mp_drawing = mp.solutions.drawing_utils
-mp_drawing_styles = mp.solutions.drawing_styles
-mp_hands = mp.solutions.hands
 
 gamepad = vg.VDS4Gamepad()
 keys = {
@@ -25,8 +20,9 @@ keys = {
         'Closed_Fist': vg.DS4_BUTTONS.DS4_BUTTON_SHOULDER_LEFT,
         'Open_Palm': vg.DS4_BUTTONS.DS4_BUTTON_TRIGGER_LEFT}}
 
-results = []
+mp_hands = mp.solutions.hands
 cap = cv2.VideoCapture(0)
+results = []
   
 def save_result(result: vision.GestureRecognizerResult,
                 unused_output_image: mp.Image, timestamp_ms: int):
@@ -67,11 +63,7 @@ def main():
   
     while cap.isOpened():
   
-        success, image = cap.read()
-        if not success:
-          sys.exit('ERROR: Unable to read from webcam. \
-                   Please verify your webcam settings.')
-    
+        _, image = cap.read()
         rgb_image = cv2.cvtColor(image, cv2.COLOR_BGR2RGB)
         mp_image = mp.Image(image_format=mp.ImageFormat.SRGB, data=rgb_image)
     
