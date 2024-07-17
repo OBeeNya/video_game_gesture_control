@@ -20,8 +20,9 @@ keys = {
         'Closed_Fist': vg.DS4_BUTTONS.DS4_BUTTON_SHOULDER_LEFT,
         'Open_Palm': vg.DS4_BUTTONS.DS4_BUTTON_TRIGGER_LEFT}}
 
-mp_hands = mp.solutions.hands
 cap = cv2.VideoCapture(0)
+image = None
+mp_hands = mp.solutions.hands
 results = []
   
 def save_result(result: vision.GestureRecognizerResult,
