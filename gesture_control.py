@@ -30,7 +30,6 @@ def save_result(result: vision.GestureRecognizerResult,
 
 def process_gesture(hand, gesture):
     if gesture in keys[hand].keys():
-        print(hand, gesture)
         gamepad.press_button(button=keys[hand][gesture])
         gamepad.update()
         time.sleep(1.0)
@@ -39,14 +38,11 @@ def process_gesture(hand, gesture):
 
 def process_left_joystick(hand_landmarks):
     index = hand_landmarks[mp_hands.HandLandmark.INDEX_FINGER_TIP]
-    x_value_float = index.x * 2 - 1
-    y_value_float = index.y * 2 - 1
-    print(x_value_float, y_value_float)
-    gamepad.left_joystick_float(
-        x_value_float=x_value_float,
-        y_value_float=y_value_float)
+    print(int(index.x*128), int(index.y*255))
+    gamepad.left_joystick(
+        x_value=int(index.x*128),
+        y_value=int(index.y*255))
     gamepad.update()
-    time.sleep(1.0)
 
 def main():
   
