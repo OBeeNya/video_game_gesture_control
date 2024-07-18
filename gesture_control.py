@@ -1,12 +1,16 @@
+import customtkinter as ctk
 import cv2
 import mediapipe as mp
 from mediapipe.tasks import python
 from mediapipe.tasks.python import vision
 import os
+from PIL import Image, ImageTk
+import threading
 import time
 import vgamepad as vg
 
 gamepad = vg.VDS4Gamepad()
+button_states = {button: False for button in vg.DS4_BUTTONS}
 keys = {
     'Right': {
         'Closed_Fist': vg.DS4_BUTTONS.DS4_BUTTON_CIRCLE,
@@ -24,7 +28,7 @@ cap = cv2.VideoCapture(0)
 image = None
 mp_hands = mp.solutions.hands
 results = []
-  
+
 def save_result(result: vision.GestureRecognizerResult,
                 unused_output_image: mp.Image, timestamp_ms: int):
     results.append(result)
@@ -46,7 +50,7 @@ def process_left_joystick(hand_landmarks):
     time.sleep(0.05)
     gamepad.update()
 
-def main():
+def start_video():
   
     model_asset_path = str(os.path.join(
         os.getcwd(),
@@ -68,26 +72,54 @@ def main():
         recognizer.recognize_async(mp_image, time.time_ns() // 1_000_000)
     
         if results:
+
             for (hand_index, hand_landmarks), hand in zip(
                 enumerate(results[0].hand_landmarks), results[0].handedness):
 
                 hand = hand[0].display_name
+
                 if results[0].gestures:
+                
                     gesture = results[0].gestures[hand_index][0].category_name
+                
                     if gesture != 'None':
                         process_gesture(hand, gesture)
+                
                     if hand == 'Left' and gesture not in keys['Left'].keys():
                         process_left_joystick(hand_landmarks)
     
             results.clear()
-            cv2.imshow('Gesture Recognition', image)
     
-        if cv2.waitKey(1) == 27:
-            break
-  
+        img = Image.fromarray(rgb_image)
+        imgtk = ImageTk.PhotoImage(image=img)
+        video_label.imgtk = imgtk
+        video_label.configure(image=imgtk)
+        time.sleep(0.03)
+
     recognizer.close()
     cap.release()
     cv2.destroyAllWindows()
 
+def on_start_click():
+    video_thread.start()
+
+ctk.set_appearance_mode("Dark")
+ctk.set_default_color_theme("blue")
+
+root = ctk.CTk()
+root.geometry('640x505')
+root.title("Gesture Recognition")
+
+taskbar_frame = ctk.CTkFrame(root, height=25)
+taskbar_frame.pack(fill="x", side="top")
+
+start_button = ctk.CTkButton(taskbar_frame, text="Start Video Capture", command=on_start_click)
+start_button.pack(side="left")
+
+video_label = ctk.CTkLabel(root, text="")
+video_label.pack(expand=True, fill="both")
+video_thread = threading.Thread(target=start_video)
+
 if __name__ == '__main__':
-    main()
+    root.mainloop()
+#     main()
