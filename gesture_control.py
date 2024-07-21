@@ -5,121 +5,112 @@ from mediapipe.tasks import python
 from mediapipe.tasks.python import vision
 import os
 from PIL import Image, ImageTk
+import queue
 import threading
 import time
 import vgamepad as vg
 
-gamepad = vg.VDS4Gamepad()
-button_states = {button: False for button in vg.DS4_BUTTONS}
-keys = {
-    'Right': {
-        'Closed_Fist': vg.DS4_BUTTONS.DS4_BUTTON_CIRCLE,
-        'Open_Palm': vg.DS4_BUTTONS.DS4_BUTTON_SHOULDER_RIGHT,
-        'Pointing_Up': vg.DS4_BUTTONS.DS4_BUTTON_THUMB_RIGHT,
-        'Thumb_Down': vg.DS4_BUTTONS.DS4_BUTTON_SHARE,
-        'Thumb_Up': vg.DS4_BUTTONS.DS4_BUTTON_SQUARE,
-        'Victory': vg.DS4_BUTTONS.DS4_BUTTON_TRIANGLE,
-        'ILoveYou': vg.DS4_BUTTONS.DS4_BUTTON_CROSS},
-    'Left': {
-        'Closed_Fist': vg.DS4_BUTTONS.DS4_BUTTON_SHOULDER_LEFT,
-        'Open_Palm': vg.DS4_BUTTONS.DS4_BUTTON_TRIGGER_LEFT}}
+input_queue = queue.Queue()
 
-cap = cv2.VideoCapture(0)
-image = None
-mp_hands = mp.solutions.hands
-results = []
+class GestureControl(ctk.CTkFrame):
 
-def save_result(result: vision.GestureRecognizerResult,
-                unused_output_image: mp.Image, timestamp_ms: int):
-    results.append(result)
+    def __init__(self, parent):
 
-def process_gesture(hand, gesture):
-    if gesture in keys[hand].keys():
-        gamepad.press_button(button=keys[hand][gesture])
-        gamepad.update()
-        time.sleep(0.5)
-        gamepad.release_button(button=keys[hand][gesture])
-        gamepad.update()
-        time.sleep(0.5)
+        super().__init__(parent)
+        self.pack(expand=True, fill="both")
+        self.configure(fg_color='#ccccff')
 
-def process_left_joystick(hand_landmarks):
-    index = hand_landmarks[mp_hands.HandLandmark.INDEX_FINGER_TIP]
-    gamepad.left_joystick(
-        x_value=int(-index.x*255+255),
-        y_value=int(index.y*255))
-    time.sleep(0.05)
-    gamepad.update()
+        self.gamepad = vg.VDS4Gamepad()
+        self.keys = {
+            'Right': {
+                'Closed_Fist': vg.DS4_BUTTONS.DS4_BUTTON_CIRCLE,
+                'Open_Palm': vg.DS4_BUTTONS.DS4_BUTTON_SHOULDER_RIGHT,
+                'Pointing_Up': vg.DS4_BUTTONS.DS4_BUTTON_THUMB_RIGHT,
+                'Thumb_Down': vg.DS4_BUTTONS.DS4_BUTTON_SHARE,
+                'Thumb_Up': vg.DS4_BUTTONS.DS4_BUTTON_SQUARE,
+                'Victory': vg.DS4_BUTTONS.DS4_BUTTON_TRIANGLE,
+                'ILoveYou': vg.DS4_BUTTONS.DS4_BUTTON_CROSS},
+            'Left': {
+                'Closed_Fist': vg.DS4_BUTTONS.DS4_BUTTON_SHOULDER_LEFT,
+                'Open_Palm': vg.DS4_BUTTONS.DS4_BUTTON_TRIGGER_LEFT}}
 
-def start_video():
-  
-    model_asset_path = str(os.path.join(
-        os.getcwd(),
-        'tasks',
-        'gesture_recognizer.task'))
-    base_options = python.BaseOptions(model_asset_path=model_asset_path)
-    options = vision.GestureRecognizerOptions(base_options=base_options,
-        running_mode=vision.RunningMode.LIVE_STREAM,
-        num_hands=2,
-        result_callback=save_result)
-    recognizer = vision.GestureRecognizer.create_from_options(options)
-  
-    while cap.isOpened():
-  
-        _, image = cap.read()
-        rgb_image = cv2.cvtColor(image, cv2.COLOR_BGR2RGB)
-        mp_image = mp.Image(image_format=mp.ImageFormat.SRGB, data=rgb_image)
+        self.cap = cv2.VideoCapture(0)
+        self.image = None
+        self.mp_hands = mp.solutions.hands
+        self.results = []
+        self.recognizer = None
+
+        self.video_label = ctk.CTkLabel(self, text="")
+        self.video_label.pack(expand=True, fill="both")
+
+        self.video_thread = threading.Thread(target=self.start_video, daemon=True)
+        self.video_thread.start()
+
+    def save_result(self, result: vision.GestureRecognizerResult,
+                    unused_output_image: mp.Image, timestamp_ms: int):
+        self.results.append(result)
+
+    def process_gesture(self, hand, gesture):
+        if gesture in self.keys[hand].keys():
+            input_queue.put(hand+' '+gesture)
+            self.gamepad.press_button(button=self.keys[hand][gesture])
+            self.gamepad.update()
+            time.sleep(0.5)
+            self.gamepad.release_button(button=self.keys[hand][gesture])
+            self.gamepad.update()
+            time.sleep(0.5)
+
+    def process_left_joystick(self, hand_landmarks):
+        index = hand_landmarks[self.mp_hands.HandLandmark.INDEX_FINGER_TIP]
+        self.gamepad.left_joystick(
+            x_value=int(-index.x*255+255),
+            y_value=int(index.y*255))
+        time.sleep(0.05)
+        self.gamepad.update()
+
+    def start_video(self):
+
+        model_asset_path = os.path.join(
+            os.path.dirname(os.path.realpath(__file__)),
+            'tasks',
+            'gesture_recognizer.task')
+        base_options = python.BaseOptions(model_asset_path=model_asset_path)
+        options = vision.GestureRecognizerOptions(base_options=base_options,
+            running_mode=vision.RunningMode.LIVE_STREAM,
+            num_hands=2,
+            result_callback=self.save_result)
+        self.recognizer = vision.GestureRecognizer.create_from_options(options)
     
-        recognizer.recognize_async(mp_image, time.time_ns() // 1_000_000)
-    
-        if results:
+        while self.cap.isOpened():
+        
+            _, image = self.cap.read()
+            rgb_image = cv2.cvtColor(image, cv2.COLOR_BGR2RGB)
+            mp_image = mp.Image(image_format=mp.ImageFormat.SRGB, data=rgb_image)
 
-            for (hand_index, hand_landmarks), hand in zip(
-                enumerate(results[0].hand_landmarks), results[0].handedness):
+            self.recognizer.recognize_async(mp_image, time.time_ns() // 1_000_000)
 
-                hand = hand[0].display_name
+            if self.results:
 
-                if results[0].gestures:
-                
-                    gesture = results[0].gestures[hand_index][0].category_name
-                
-                    if gesture != 'None':
-                        process_gesture(hand, gesture)
-                
-                    if hand == 'Left' and gesture not in keys['Left'].keys():
-                        process_left_joystick(hand_landmarks)
-    
-            results.clear()
-    
-        img = Image.fromarray(rgb_image)
-        imgtk = ImageTk.PhotoImage(image=img)
-        video_label.imgtk = imgtk
-        video_label.configure(image=imgtk)
-        time.sleep(0.03)
+                for (hand_index, hand_landmarks), hand in zip(
+                    enumerate(self.results[0].hand_landmarks), self.results[0].handedness):
 
-    recognizer.close()
-    cap.release()
-    cv2.destroyAllWindows()
+                    hand = hand[0].display_name
 
-def on_start_click():
-    video_thread.start()
+                    if self.results[0].gestures:
+                        gesture = self.results[0].gestures[hand_index][0].category_name
+                        if gesture != 'None':
+                            self.process_gesture(hand, gesture)
+                        if hand == 'Left' and gesture not in self.keys['Left'].keys():
+                            self.process_left_joystick(hand_landmarks)
 
-ctk.set_appearance_mode("Dark")
-ctk.set_default_color_theme("blue")
+                self.results.clear()
 
-root = ctk.CTk()
-root.geometry('640x505')
-root.title("Gesture Recognition")
+            img = Image.fromarray(rgb_image)
+            imgtk = ImageTk.PhotoImage(image=img)
+            self.video_label.imgtk = imgtk
+            self.video_label.configure(image=imgtk)
+            time.sleep(0.03)
 
-taskbar_frame = ctk.CTkFrame(root, height=25)
-taskbar_frame.pack(fill="x", side="top")
-
-start_button = ctk.CTkButton(taskbar_frame, text="Start Video Capture", command=on_start_click)
-start_button.pack(side="left")
-
-video_label = ctk.CTkLabel(root, text="")
-video_label.pack(expand=True, fill="both")
-video_thread = threading.Thread(target=start_video)
-
-if __name__ == '__main__':
-    root.mainloop()
-#     main()
+        self.recognizer.close()
+        self.cap.release()
+        cv2.destroyAllWindows()
