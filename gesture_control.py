@@ -1,14 +1,4 @@
-import customtkinter as ctk
-import cv2
-import mediapipe as mp
-from mediapipe.tasks import python
-from mediapipe.tasks.python import vision
-import os
-from PIL import Image, ImageTk
-import queue
-import threading
-import time
-import vgamepad as vg
+from imports import *
 
 input_queue = queue.Queue()
 
@@ -106,6 +96,7 @@ class GestureControl(ctk.CTkFrame):
                 self.results.clear()
 
             img = Image.fromarray(rgb_image)
+            # imgtk = ctk.CTkImage(img)
             imgtk = ImageTk.PhotoImage(image=img)
             self.video_label.imgtk = imgtk
             self.video_label.configure(image=imgtk)

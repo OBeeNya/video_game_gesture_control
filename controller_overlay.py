@@ -1,13 +1,8 @@
-import customtkinter as ctk
 from gesture_control import input_queue
-import ps4assets as gamepad_assets
-import pygame
-from PIL import Image, ImageTk
-import threading
+from imports import *
+import gamepad_assets
 
-COLOUR_KEY = (204, 204, 255)
-
-class ControllerOverlayApp(ctk.CTkFrame):
+class ControllerOverlay(ctk.CTkFrame):
 
     def __init__(self, parent):
 
@@ -30,7 +25,7 @@ class ControllerOverlayApp(ctk.CTkFrame):
         size = self.asset_map._base.get_size()
         self.window_size = (size[0] + 10, size[1] + 10)
         self.screen = pygame.Surface(self.window_size)
-        self.screen.fill(COLOUR_KEY)
+        self.screen.fill((204, 204, 255))
         pygame.display.set_caption('Controller Visualisation Overlay')
 
         self.image_label = ctk.CTkLabel(self, text='')
@@ -49,7 +44,6 @@ class ControllerOverlayApp(ctk.CTkFrame):
                 if event.type == pygame.QUIT:
                     self.running = False
 
-            self.screen.fill(COLOUR_KEY)
             self.screen.blit(self.asset_map._base, (5, 5))
 
             for button_num in range(self.controller.get_numbuttons()):

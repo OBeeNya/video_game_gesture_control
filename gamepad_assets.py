@@ -1,10 +1,9 @@
-import pathlib
-import pygame
+from imports import *
 
 buttons = {
     0: 'westButton',
     1: 'eastButton',
-    2: 'eastButton',
+    2: 'westButton',
     3: 'northButton',
     4: 'leftBumper',
     5: 'rightBumper',
