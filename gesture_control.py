@@ -41,16 +41,21 @@ class GestureControl(ctk.CTkFrame):
         self.results.append(result)
 
     def process_gesture(self, hand, gesture):
+
         if gesture in self.keys[hand].keys():
+
             input_queue.put(hand+' '+gesture)
+         
             self.gamepad.press_button(button=self.keys[hand][gesture])
             self.gamepad.update()
             time.sleep(0.5)
+         
             self.gamepad.release_button(button=self.keys[hand][gesture])
             self.gamepad.update()
             time.sleep(0.5)
 
     def process_left_joystick(self, hand_landmarks):
+
         index = hand_landmarks[self.mp_hands.HandLandmark.INDEX_FINGER_TIP]
         self.gamepad.left_joystick(
             x_value=int(-index.x*255+255),
@@ -96,7 +101,6 @@ class GestureControl(ctk.CTkFrame):
                 self.results.clear()
 
             img = Image.fromarray(rgb_image)
-            # imgtk = ctk.CTkImage(img)
             imgtk = ImageTk.PhotoImage(image=img)
             self.video_label.imgtk = imgtk
             self.video_label.configure(image=imgtk)

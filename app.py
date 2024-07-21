@@ -17,13 +17,9 @@ class App(ctk.CTk):
         self.iconbitmap(icon_path)
         
         self.app1_frame = GestureControl(self)
-        self.app1_frame.pack(side="top")
-        
         self.app2_frame = ControllerOverlay(self)
 
 if __name__ == '__main__':
     
-    ctk.set_appearance_mode("Dark")
-    ctk.set_default_color_theme("blue")
     app = App()
     app.mainloop()
