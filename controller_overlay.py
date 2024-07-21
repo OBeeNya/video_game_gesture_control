@@ -9,6 +9,7 @@ class ControllerOverlay(ctk.CTkFrame):
         super().__init__(parent)
         self.parent = parent
         self.pack(expand=True, fill="both")
+        self.configure(fg_color='#ccccff')
 
         self.asset_map = gamepad_assets.PS4Assets()
         self.asset_map.load()
@@ -26,7 +27,7 @@ class ControllerOverlay(ctk.CTkFrame):
         self.window_size = (size[0] + 10, size[1] + 10)
         self.screen = pygame.Surface(self.window_size)
         self.screen.fill((204, 204, 255))
-        pygame.display.set_caption('Controller Visualisation Overlay')
+        self.screen.blit(self.asset_map._base, (5, 5))
 
         self.image_label = ctk.CTkLabel(self, text='')
         self.image_label.pack(expand=True, fill="both")
