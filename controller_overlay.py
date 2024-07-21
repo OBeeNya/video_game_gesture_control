@@ -31,19 +31,34 @@ class ControllerOverlay(ctk.CTkFrame):
 
         self.image_label = ctk.CTkLabel(self, text='')
         self.image_label.pack(expand=True, fill="both")
-        self.update_image()
+        self.__update_image()
 
         self.pygame_thread = threading.Thread(target=self.run_pygame, daemon=True)
         self.pygame_thread.start()
 
+    def __update_image(self):
+
+        pygame_image = pygame.surfarray.array3d(self.screen)
+        pygame_image = pygame_image.swapaxes(0, 1)
+        pil_image = Image.fromarray(pygame_image)
+        imgtk = ImageTk.PhotoImage(pil_image)
+        self.image_label.imgtk = imgtk
+        self.image_label.configure(image=imgtk)
+
     def run_pygame(self):
 
         self.running = True
+        queued_input = None
+
         while self.running:
-            self.image_label.configure(text=input_queue.get())
+
             for event in pygame.event.get():
                 if event.type == pygame.QUIT:
                     self.running = False
+            
+            if not input_queue.empty():
+                queued_input = input_queue.get()
+                self.image_label.configure(text=queued_input)
 
             self.screen.blit(self.asset_map._base, (5, 5))
 
@@ -79,22 +94,15 @@ class ControllerOverlay(ctk.CTkFrame):
             self.screen.blit(right_analog['img'], (right_analog['loc'][0] + (30 * right_ana_horiz), right_analog['loc'][1] + (30 * right_ana_verti)))
 
             lt = self.asset_map.left_trigger
-            rt = self.asset_map.right_trigger
-            if max(0, (self.controller.get_axis(5) + 1) / 2) > self.trigger_deadzone:
+            # rt = self.asset_map.right_trigger
+            # if max(0, (self.controller.get_axis(5) + 1) / 2) > self.trigger_deadzone:
+            # if not input_queue.empty() and input_queue.get() == "Left Open_Palm":
+            if queued_input and queued_input == 'Left Open_Palm':
                 self.screen.blit(lt['img'], lt['loc'])
-            if max(0, (self.controller.get_axis(4) + 1) / 2) > self.trigger_deadzone:
-                self.screen.blit(rt['img'], rt['loc'])
+            # if max(0, (self.controller.get_axis(4) + 1) / 2) > self.trigger_deadzone:
+                # self.screen.blit(rt['img'], rt['loc'])
 
-            self.update_image()
+            self.__update_image()
             pygame.time.delay(30)
 
         pygame.quit()
-
-    def update_image(self):
-
-        pygame_image = pygame.surfarray.array3d(self.screen)
-        pygame_image = pygame_image.swapaxes(0, 1)
-        pil_image = Image.fromarray(pygame_image)
-        imgtk = ImageTk.PhotoImage(pil_image)
-        self.image_label.imgtk = imgtk
-        self.image_label.configure(image=imgtk)

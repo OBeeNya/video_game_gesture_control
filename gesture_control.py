@@ -36,11 +36,11 @@ class GestureControl(ctk.CTkFrame):
         self.video_thread = threading.Thread(target=self.start_video, daemon=True)
         self.video_thread.start()
 
-    def save_result(self, result: vision.GestureRecognizerResult,
+    def __save_result(self, result: vision.GestureRecognizerResult,
                     unused_output_image: mp.Image, timestamp_ms: int):
         self.results.append(result)
 
-    def process_gesture(self, hand, gesture):
+    def __process_gesture(self, hand, gesture):
 
         if gesture in self.keys[hand].keys():
 
@@ -54,7 +54,7 @@ class GestureControl(ctk.CTkFrame):
             self.gamepad.update()
             time.sleep(0.5)
 
-    def process_left_joystick(self, hand_landmarks):
+    def __process_left_joystick(self, hand_landmarks):
 
         index = hand_landmarks[self.mp_hands.HandLandmark.INDEX_FINGER_TIP]
         self.gamepad.left_joystick(
@@ -73,7 +73,7 @@ class GestureControl(ctk.CTkFrame):
         options = vision.GestureRecognizerOptions(base_options=base_options,
             running_mode=vision.RunningMode.LIVE_STREAM,
             num_hands=2,
-            result_callback=self.save_result)
+            result_callback=self.__save_result)
         self.recognizer = vision.GestureRecognizer.create_from_options(options)
     
         while self.cap.isOpened():
@@ -94,9 +94,9 @@ class GestureControl(ctk.CTkFrame):
                     if self.results[0].gestures:
                         gesture = self.results[0].gestures[hand_index][0].category_name
                         if gesture != 'None':
-                            self.process_gesture(hand, gesture)
+                            self.__process_gesture(hand, gesture)
                         if hand == 'Left' and gesture not in self.keys['Left'].keys():
-                            self.process_left_joystick(hand_landmarks)
+                            self.__process_left_joystick(hand_landmarks)
 
                 self.results.clear()
 

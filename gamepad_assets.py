@@ -1,21 +1,21 @@
 from imports import *
 
 buttons = {
-    0: 'westButton',
-    1: 'eastButton',
-    2: 'westButton',
-    3: 'northButton',
-    4: 'leftBumper',
-    5: 'rightBumper',
-    6: 'leftTrigger',
-    7: 'leftTrigger',
-    8: 'rightJoystick',
-    9: 'leftBumper',
-    10: 'rightBumper',
+    0: 'southButton', # Right ILoveYou
+    1: 'eastButton', # Right Closed_Fist
+    2: 'westButton', # Right Thumbs_Up
+    3: 'northButton', # Right Victory
+    4: 'leftCenterButton', # Right Thumbs_Down
+    5: '',
+    6: '',
+    7: '',
+    8: 'rightJoystick', # Right Pointing_Up
+    9: 'leftBumper', # Left Closed_Fist
+    10: 'rightBumper', # Right Open_Palm
     14: 'leftJoystick',
-    11: 'rightJoystick',
-    12: 'platformButton',
-    13: 'centerButton',
+    11: '',
+    12: '',
+    13: '',
     'LeftStickX': 0,
     'LeftStickY': 1,
     'RightStickX': 2,
@@ -41,6 +41,7 @@ class PS4Assets:
         self._files = pathlib.Path(__file__).parent / 'assets' / 'controller'
 
     def __getitem__(self, item):
+
         if isinstance(item, str):
             return self._assets[item]
         elif isinstance(item, tuple):
@@ -54,6 +55,7 @@ class PS4Assets:
             return imgs
 
     def load(self):
+
         self._base = load_image(self._files / 'controller_base.png')
         self.left_trigger = {'img': load_image(self._files / 'left_trigger_pressed.png'), 'loc': (113, 5)}
         self.right_trigger = {'img': load_image(self._files / 'right_trigger_pressed.png'), 'loc': (602, 5)}
