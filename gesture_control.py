@@ -36,9 +36,6 @@ class GestureControl(ctk.CTkFrame):
         self.video_thread = threading.Thread(target=self.start_video, daemon=True)
         self.video_thread.start()
 
-        self.__previous_hand = None
-        self.__previous_gesture = None
-
     def __save_result(self, result: vision.GestureRecognizerResult,
                     unused_output_image: mp.Image, timestamp_ms: int):
         self.results.append(result)
@@ -47,20 +44,12 @@ class GestureControl(ctk.CTkFrame):
 
         if gesture in self.keys[hand].keys():
             input_queue.put(hand+' '+gesture)
-            if hand and gesture and (hand != self.__previous_hand or gesture != self.__previous_gesture):
-                if self.__previous_hand and self.__previous_gesture:
-                    self.gamepad.release_button(button=self.keys[self.__previous_hand][self.__previous_gesture])
-                    self.gamepad.update()
-                    time.sleep(0.5)
-                self.gamepad.press_button(button=self.keys[hand][gesture])
-                self.__previous_hand = hand
-                self.__previous_gesture = gesture
-                self.gamepad.update()
-                time.sleep(0.5)
-            elif not hand or not gesture and self.__previous_hand and self.__previous_gesture:
-                self.gamepad.release_button(button=self.keys[self.__previous_hand][self.__previous_gesture])
-                self.gamepad.update()
-                time.sleep(0.5)
+            self.gamepad.press_button(button=self.keys[hand][gesture])
+            self.gamepad.update()
+            time.sleep(0.5)
+            self.gamepad.release_button(button=self.keys[hand][gesture])
+            self.gamepad.update()
+            time.sleep(0.5)
 
     def __process_left_joystick(self, hand_landmarks):
 
