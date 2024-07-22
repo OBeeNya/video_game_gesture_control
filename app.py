@@ -19,7 +19,15 @@ class App(ctk.CTk):
         self.app1_frame = GestureControl(self)
         self.app2_frame = ControllerOverlay(self)
 
+    def cleanup(self):
+
+        self.app1_frame.recognizer.close()
+        self.app1_frame.cap.release()
+        cv2.destroyAllWindows()
+        pygame.quit()
+
 if __name__ == '__main__':
     
     app = App()
+    atexit.register(app.cleanup)
     app.mainloop()

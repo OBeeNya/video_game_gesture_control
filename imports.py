@@ -1,3 +1,4 @@
+import atexit
 import customtkinter as ctk
 import cv2
 import mediapipe as mp

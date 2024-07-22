@@ -104,5 +104,3 @@ class ControllerOverlay(ctk.CTkFrame):
 
             self.__update_image()
             pygame.time.delay(30)
-
-        pygame.quit()

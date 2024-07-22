@@ -55,14 +55,17 @@ class GestureControl(ctk.CTkFrame):
 
         tip = hand_landmarks[self.mp_hands.HandLandmark.INDEX_FINGER_TIP]
         # mcp = hand_landmarks[self.mp_hands.HandLandmark.INDEX_FINGER_MCP]
-        if tip.x < 0.5 or tip.y < 0.5 or tip.x > 1 or tip.y > 1:
+        # if tip.x < 0.5 or tip.y < 0.5 or tip.x > 1 or tip.y > 1:
+        if tip.x < 0.5 or tip.x > 1:
             x_value = 128
-            y_value = 128
         else:
             x_value = 2 * (tip.x - 0.5)
-            y_value = 2 * (tip.y - 0.5)
             x_value = int(-x_value*255+255)
-            y_value = int(y_value*255)
+        if tip.y > 1:
+            y_value = 128
+        else:
+            # y_value = 2 * (tip.y - 0.5)
+            y_value = int(tip.y*255)
         # print(x_value, y_value)
             # x_value = 255 * (tip.x < mcp.x)
             # y_value = 255 * (tip.y > mcp.y)
@@ -116,7 +119,3 @@ class GestureControl(ctk.CTkFrame):
             self.video_label.imgtk = imgtk
             self.video_label.configure(image=imgtk)
             time.sleep(0.03)
-
-        self.recognizer.close()
-        self.cap.release()
-        cv2.destroyAllWindows()
