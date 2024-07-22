@@ -53,10 +53,24 @@ class GestureControl(ctk.CTkFrame):
 
     def __process_left_joystick(self, hand_landmarks):
 
-        index = hand_landmarks[self.mp_hands.HandLandmark.INDEX_FINGER_TIP]
+        tip = hand_landmarks[self.mp_hands.HandLandmark.INDEX_FINGER_TIP]
+        # mcp = hand_landmarks[self.mp_hands.HandLandmark.INDEX_FINGER_MCP]
+        if tip.x < 0.5 or tip.y < 0.5 or tip.x > 1 or tip.y > 1:
+            x_value = 128
+            y_value = 128
+        else:
+            x_value = 2 * (tip.x - 0.5)
+            y_value = 2 * (tip.y - 0.5)
+            x_value = int(-x_value*255+255)
+            y_value = int(y_value*255)
+        # print(x_value, y_value)
+            # x_value = 255 * (tip.x < mcp.x)
+            # y_value = 255 * (tip.y > mcp.y)
+            # x_value = int(255 * tip.x / mcp.x)
+            # y_value = int(255 * mcp.y / tip.y)
         self.gamepad.left_joystick(
-            x_value=int(-index.x*255+255),
-            y_value=int(index.y*255))
+            x_value=x_value,
+            y_value=y_value)
         time.sleep(0.05)
         self.gamepad.update()
 
